@@ -51,7 +51,7 @@ $('form').submit(function() {
     $('#txtMessage').focus();
     console.log(JSON.stringify({room: room, username: username}));
     beginSocket(room, username);
-    resetChat();
+    //resetChat();
     return false;
 });
 
@@ -60,9 +60,12 @@ function beginSocket(room, username){
     websocket = new WebSocket("ws://localhost:8080/" + room + "/" + username);
 
     websocket.onmessage = function(evt) {
+        console.log(evt.data);
         let data = JSON.parse(evt.data);
         if(data.action === "msg"){
             insertChat(data.name, data.message);
+        }else if(data.action === "online"){
+            addUserOnline(data)
         }
     };
 
@@ -82,4 +85,11 @@ function closeWebsocket(){
 
 function sendMessage(){
     websocket.send($('#txtMessage').val());
+}
+
+function addUserOnline(data){
+    let item = '<li class="nav-item">'+
+                    '<a class="nav-link active" href="#">' + data.name + ' <span class="badge badge-success">online</span></a>'+
+                '</li>'
+    $("#listUsers").append(item)
 }

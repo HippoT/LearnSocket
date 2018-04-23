@@ -4,6 +4,7 @@ const WebSocket = require('ws');
 
 const wss = new WebSocket.Server({ port: 8080 });
 var clients = [{room: "broadcast", client: []}];
+var clientsBroadcast = [];
 
 wss.on('connection', function connection(ws, req) {
 
@@ -14,6 +15,9 @@ wss.on('connection', function connection(ws, req) {
   let objParams = {room: arrParams[0], username: arrParams[1]};
 
   addClient(ws, objParams);
+
+  broadcastOnline(0, objParams.username);
+  addClientNew(0, ws, objParams.username)
 
   ws.on('message', function (msg) {
 
@@ -93,4 +97,29 @@ function addClient(clientsWS, objParams){
   }
 }
 
+
+function addClientNew(ID, clientWebSocket, name){
+  ID = clientsBroadcast.length + 1;
+  console.log("add client ID : " + ID);
+  console.log("add client name : " + name);
+  clientsBroadcast.push({ID: ID, name: name, ws: clientWebSocket})
+}
+
+function searchClient(ID){
+  for(let i = 0; i < clientsBroadcast.length; i++){
+    if(clientsBroadcast[i].ID == ID){
+      return clientsBroadcast[i];
+    }
+  }
+  return null;
+}
+
+function broadcastOnline(ID, name){
+  ID = clientsBroadcast.length + 1;
+  for(let i = 0; i < clientsBroadcast.length; i++){
+    let message = JSON.stringify({action: "online",name: name, ID: ID});
+    console.log("broadcast online : " + message);
+    clientsBroadcast[i].ws.send(message)
+  }
+}
 module.exports = wss;
